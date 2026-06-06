@@ -1,0 +1,7 @@
+user:
+  name: alex
+  phone: "0528492048"
+  age: 25
+  hobbies:
+    - coding
+    - football
