@@ -18,6 +18,7 @@ echo "=== Cleaning old packages ==="
 rm -rf packages
 
 echo "=== Building Melange package ==="
+melange keygen
 melange build --arch $ARCH --signing-key melange.rsa melange/dasel.yaml
 
 echo "=== Testing Melange package ==="
@@ -29,13 +30,13 @@ apko build --arch $ARCH apko/dasel.yaml dasel ./dasel-image-$ARCH.tar
 echo "=== Loading Docker image ==="
 docker load -i ./dasel-image-$ARCH.tar
 
+echo "=== Running version command inside container ==="
+docker run --rm dasel:latest-$ARCH version
+
 echo "=== Running normal YAML test inside container ==="
 cat tests/normal.yaml | docker run --rm -i dasel:latest-$ARCH query --in yaml
 
 echo "=== Running malicious YAML test inside container ==="
 cat tests/malicious.yaml | docker run --rm -i dasel:latest-$ARCH query --in yaml
-
-echo "=== Running version command inside container ==="
-docker run --rm dasel:latest-$ARCH version
 
 echo "All tests completed successfully."

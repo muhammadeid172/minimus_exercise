@@ -1,7 +1,9 @@
-user:
-  name: alex
-  phone: "0528492048"
-  age: 25
-  hobbies:
-    - coding
-    - football
+users:
+  - &mohammad
+    name: Mohammad
+    following: []
+
+  - &sally
+    name: Sally
+    following:
+      - *mohammad

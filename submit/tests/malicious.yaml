@@ -1,2 +1,5 @@
-a: &a
-  b: *a
+users:
+  - &mohammad
+    name: Mohammad
+    following:
+      - *mohammad
