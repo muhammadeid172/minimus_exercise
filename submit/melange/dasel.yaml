@@ -1,0 +1,50 @@
+package:
+  name: dasel
+  version: 3.3.1
+  epoch: 0
+  description: CLI tool for querying and modifying YAML/JSON/etc
+  copyright:
+    - license: MIT
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+      - ca-certificates-bundle
+      - go
+
+pipeline:
+  # checkout the dasel source at v3.3.1
+  - uses: git-checkout
+    with:
+      repository: https://github.com/TomWright/dasel
+      tag: v${{package.version}}
+
+  # build the CLI binary (must point to cmd/dasel)
+  - runs: |
+      GOARCH=arm64 GOOS=linux CGO_ENABLED=0 go build -o dasel ./cmd/dasel
+
+  # install into the package directory
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/bin
+      install -m755 dasel ${{targets.destdir}}/usr/bin/dasel
+
+test:
+  environment:
+    contents:
+      repositories:
+        - packages
+        - https://packages.wolfi.dev/os
+      keyring:
+        - melange.rsa.pub
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      packages:
+        - busybox
+        - dasel
+  pipeline:
+    - runs: |
+        /usr/bin/dasel version
