@@ -12,7 +12,7 @@ This repository contains the build and test setup for `dasel v3.3.1`, including 
 root/
 ├── README.md
 ├── exercise.pdf
-└── submit/
+└── solution/
     ├── melange/
     │   ├── dasel.yaml              # Melange package configuration
     │   └── CVE-2026-33320.patch    # Patch applied to Dasel source
@@ -40,7 +40,7 @@ The `test.sh` script automatically detects the host architecture.
 
 ## Building and Testing
 
-1. Open a terminal in the `submit/` directory.
+1. Open a terminal in the `solution/` directory.
 2. Make the test script executable:
 
 ```bash
