@@ -21,7 +21,7 @@ root/
     └── tests/
         ├── normal.yaml             # Safe YAML test case
         ├── malicious.yaml          # Recursive YAML aliases (malicious) test case
-        └── run_tests.sh            # Test script for automated build/test
+        └── test.sh            # Test script for automated build/test
 ```
 
 ---
@@ -34,7 +34,7 @@ root/
 - Melange  
 - apko  
 
-The `run_tests.sh` script automatically detects the host architecture.
+The `test.sh` script automatically detects the host architecture.
 
 ---
 
@@ -44,13 +44,13 @@ The `run_tests.sh` script automatically detects the host architecture.
 2. Make the test script executable:
 
 ```bash
-chmod +x tests/run_tests.sh
+chmod +x tests/test.sh
 ```
 
 3. Run the script:
 
 ```bash
-./tests/run_tests.sh
+./tests/test.sh
 ```
 
 The script will:
