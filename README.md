@@ -1,6 +1,7 @@
 # Dasel CVE-2026-33320 vulnerability patch: Packaging and Testing
 
-This is an exercise as part of the hiring process at Minimus
+This is an exercise as part of the hiring process at Minimus.
+Summarized build and run instructions can be found in `solution/NOTES.md`.
 
 ## Overview
 
