@@ -16,6 +16,8 @@ environment:
       - busybox
       - ca-certificates-bundle
       - go
+      - patch
+      - git
 
 pipeline:
   # checkout the dasel source at v3.3.1
@@ -24,7 +26,14 @@ pipeline:
       repository: https://github.com/TomWright/dasel
       tag: v${{package.version}}
 
-  # build the CLI binary (must point to cmd/dasel)
+  # manually apply CVE-2026-33320 patch
+  - runs: |
+      echo "=== Workspace files ==="
+      find . -type f
+      echo "=== Applying patch ==="
+      patch -p1 < CVE-2026-33320.patch
+
+  # build the CLI binary
   - runs: |
       CGO_ENABLED=0 go build -o dasel ./cmd/dasel
 
