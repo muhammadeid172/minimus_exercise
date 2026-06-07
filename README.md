@@ -32,13 +32,11 @@ root/
 
 ---
 
-## Prerequisites
+## Prerequisites and Assumptions
 
-- Linux host (x86_64, arm64/aarch64, armv7, or i386)  
-- Docker  
-- Go  
-- Melange  
-- apko  
+- The host system is Linux (x86_64 or ARM64 recommended).
+- Go, Melange, and apko are installed.
+- Docker is installed and running for runtime tests.
 
 The test scripts automatically detect the host architecture.
 
