@@ -32,7 +32,7 @@ chmod +x tests/test-vulnerable.sh
 ./tests/test-vulnerable.sh
 ```
 
-The tests demonstrate runtime behavior using both normal and malicious YAML inputs.
+The tests demonstrate runtime behavior using both normal and malicious YAML inputs, using both patched and unpatched packages.
 
 ---
 
