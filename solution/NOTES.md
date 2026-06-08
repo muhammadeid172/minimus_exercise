@@ -36,4 +36,13 @@ The tests demonstrate runtime behavior using both normal and malicious YAML inpu
 
 ---
 
+## Things I would improve with more time
+
+All commands and tests were executed on a Linux ARM64 (aarch64) environment, and they passed as expected.
+
+With more time and resources, I would also test the solution on additional common architectures such as x86_64/amd64 and ARMv7 to verify portability and ensure consistent behavior across environments. This could likely be done locally using QEMU/container-based emulation tools such as Docker Buildx.
+
+
+---
+
 Full implementation details and additional notes are available in `../README.md`.
