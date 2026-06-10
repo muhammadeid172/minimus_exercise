@@ -40,6 +40,9 @@ docker run --rm dasel:latest-$ARCH version
 
 echo "=== Running normal YAML test inside container ==="
 NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
+echo "Normal yaml parsing result:"
+echo "$NOR_RESULT"
+
 if diff -u ../tests/normal-expected.yaml <(echo "$NOR_RESULT"); then
   echo "PASS: Normal YAML parsed as expected."
 else
@@ -52,6 +55,9 @@ set +e
 MAL_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/malicious.yaml 2>&1)
 STATUS=$?
 set -e
+
+echo "Malicious yaml parsing result:"
+echo "$MAL_RESULT"
 
 if [ "$STATUS" -eq 0 ]; then
   echo "FAIL: Malicious YAML unexpectedly accepted. Expected vulnerable recursive expansion failure."
