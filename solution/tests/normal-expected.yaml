@@ -1,0 +1,7 @@
+users:
+    - name: Mohammad
+      following: []
+    - name: Sally
+      following:
+        - name: Mohammad
+          following: []
