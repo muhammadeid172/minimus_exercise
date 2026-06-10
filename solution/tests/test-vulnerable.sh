@@ -5,11 +5,14 @@ echo "=== Detecting host architecture ==="
 HOSTARCH=$(uname -m)
 
 case "$HOSTARCH" in
-  x86_64) ARCH=amd64 ;;
-  aarch64 | arm64) ARCH=arm64 ;;
-  armv7*) ARCH=arm ;;
-  i386 | i686) ARCH=386 ;;
-  *) echo "Unsupported architecture: $HOSTARCH"; exit 1 ;;
+x86_64) ARCH=amd64 ;;
+aarch64 | arm64) ARCH=arm64 ;;
+armv7*) ARCH=arm ;;
+i386 | i686) ARCH=386 ;;
+*)
+  echo "Unsupported architecture: $HOSTARCH"
+  exit 1
+  ;;
 esac
 
 echo "Detected architecture: $ARCH"
@@ -36,10 +39,26 @@ echo "=== Running version command inside container ==="
 docker run --rm dasel:latest-$ARCH version
 
 echo "=== Running normal YAML test inside container ==="
-cat ../tests/normal.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
+NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
+if diff -u ../tests/normal-expected.yaml <(echo "$NOR_RESULT"); then
+  echo "PASS: Normal YAML parsed as expected."
+else
+  echo "FAIL: Failed to parse normal YAML."
+  exit 1
+fi
 
 echo "=== Running malicious YAML test inside container ==="
-cat ../tests/malicious.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
+set +e
+MAL_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/malicious.yaml 2>&1)
+STATUS=$?
+set -e
+
+if [ "$STATUS" -eq 0 ]; then
+  echo "FAIL: Malicious YAML unexpectedly accepted. Expected vulnerable recursive expansion failure."
+  exit 1
+fi
+
+echo "PASS: Malicious YAML triggered failure as expected."
 
 cd ..
 echo "All tests completed successfully."

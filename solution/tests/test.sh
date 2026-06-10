@@ -41,9 +41,10 @@ docker run --rm dasel:latest-$ARCH version
 echo "=== Running normal YAML test inside container ==="
 NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
 if diff -u ../tests/normal-expected.yaml <(echo "$NOR_RESULT"); then
-  echo "PASS: Normal YAML prased as expected."
+  echo "PASS: Normal YAML parsed as expected."
 else
   echo "FAIL: Failed to parse normal YAML."
+  exit 1
 fi
 
 echo "=== Running malicious YAML test inside container ==="
@@ -53,7 +54,7 @@ STATUS=$?
 set -e
 
 ERROR_MSG="FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
-if [ $STATUS -eq 0 ]; then
+if [ "$STATUS" -eq 0 ]; then
   echo "$ERROR_MSG"
   exit 1
 fi
@@ -63,17 +64,19 @@ EXPECTED_ERRORS=(
   "yaml expansion budget exceeded"
 )
 
-ERRORFOUND=false
+ERROR_FOUND=false
 for ERR in "${EXPECTED_ERRORS[@]}"; do
   if [[ "$MAL_RESULT" == *"$ERR"* ]]; then
-    ERRORFOUND=true
-    echo "PASS: Malicious YAML safely rejected, as expected."
+    ERROR_FOUND=true
+    echo "PASS: Malicious YAML triggered protected rejection as expected."
     break
   fi
 done
 
-if [ "$ERRORFOUND" = false ]; then
+if [ "$ERROR_FOUND" = false ]; then
   echo "$ERROR_MSG"
+  echo "Actual output:"
+  echo "$MAL_RESULT"
   exit 1
 fi
 
