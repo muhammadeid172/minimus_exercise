@@ -36,10 +36,43 @@ echo "=== Running version command inside container ==="
 docker run --rm dasel:latest-$ARCH version
 
 echo "=== Running normal YAML test inside container ==="
-cat ../tests/normal.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
+NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml < ../tests/normal.yaml 2>&1)
+if diff -u ../tests/normal-expected.yaml <(echo "$NOR_RESULT"); then
+  echo "PASS: Normal YAML prased as expected."
+else
+  echo "FAIL: Failed to parse normal YAML."
+fi
 
 echo "=== Running malicious YAML test inside container ==="
-cat ../tests/malicious.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
+set +e
+MAL_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml < ../tests/malicious.yaml 2>&1)
+STATUS=$?
+set -e
+
+ERROR_MSG="FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
+if [ $STATUS -eq 0 ]; then
+  echo "$ERROR_MSG"
+  exit 1
+fi
+
+EXPECTED_ERRORS=(
+    "yaml expansion depth exceeded"
+    "yaml expansion budget exceeded"
+)
+
+ERRORFOUND=false
+for ERR in "${EXPECTED_ERRORS[@]}"; do
+    if [[ "$MAL_RESULT" == *"$ERR"* ]]; then
+        ERRORFOUND=true
+        echo "PASS: Malicious YAML safely rejected, as expected."
+        break
+    fi
+done
+
+if [ "$ERRORFOUND" = false ]; then
+  echo "$ERROR_MSG"
+  exit 1
+fi
 
 cd ..
 echo "All tests completed successfully."
