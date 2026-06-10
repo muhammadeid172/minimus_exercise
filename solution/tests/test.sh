@@ -56,6 +56,8 @@ set -e
 ERROR_MSG="FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
 if [ "$STATUS" -eq 0 ]; then
   echo "$ERROR_MSG"
+  echo "Actual output:"
+  echo "$MAL_RESULT"
   exit 1
 fi
 
