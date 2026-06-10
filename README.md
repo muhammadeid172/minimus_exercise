@@ -64,6 +64,7 @@ i386 | i686) ARCH=386 ;;
   exit 1
   ;;
 esac
+echo "Detected architecture: $ARCH"
 ```
 
 #### 3. Prepare build directory
@@ -138,7 +139,7 @@ Possitive failure: `yaml expansion depth exceeded` or `yaml expansion budget exc
 
 ### Unpatched Packet - Building and Tesing
 
-#### 1-4. Run commands 1 to 4 from the last section
+#### 1-4. Run commands 1 to 4 from the last section (Go back to `./solution`)
 
 #### 5. Build the patched Melange package
 
@@ -199,7 +200,8 @@ Scripts description:
     - Verify malicious YAML file is safely rejected and error contains `yaml expansion depth exceeded` or `yaml expansion budget exceeded` error.
   - `./tests/test-vulnerable.sh`:
     - Print malicious YAML file prasing error.
-    - Verify malicious YAML file triggers the vulnerability error.
+    - Verify malicious YAML file parsing fails.
+      - We could check if the output contains "stack overflow" or "goroutine stack exceeds", but we decided not to depend on runtime errors that are not part of our source code. The error is printed to the std for visual/manual check.
 
 > The unpatched melange yaml is included for comparison and demonstration purposes only, and is not intended for production use.
 > This allows us to **visualize the difference** between the patched and unpatched versions.

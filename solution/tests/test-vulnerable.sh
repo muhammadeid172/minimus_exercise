@@ -68,3 +68,6 @@ echo "PASS: Malicious YAML triggered failure as expected."
 
 cd ..
 echo "All tests completed successfully."
+# We could check if the output contains "stack overflow" or "goroutine stack exceeds",
+# but we decided not to depend on runtime errors that are not part of our source code.
+# The error is printed to the std for visual/manual check.
