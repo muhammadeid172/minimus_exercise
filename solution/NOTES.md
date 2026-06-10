@@ -33,6 +33,7 @@ chmod +x tests/test-vulnerable.sh
 ```
 
 The tests demonstrate runtime behavior using both normal and malicious YAML inputs, using both patched and unpatched packages.
+The vulnerable script performs the same flow, except that it uses `dasel-vulnerable.yaml`, which does not apply the CVE-2026-33320 patch.
 
 ---
 
@@ -45,4 +46,4 @@ With more time and resources, I would also test the solution on additional commo
 
 ---
 
-Full implementation details and additional notes are available in `../README.md`.
+Full implementation details, additional notes, and step-by-step commands are available in `../README.md`.
