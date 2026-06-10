@@ -28,8 +28,6 @@ pipeline:
 
   # manually apply CVE-2026-33320 patch
   - runs: |
-      echo "=== Workspace files ==="
-      find . -type f
       echo "=== Applying patch ==="
       patch -p1 < CVE-2026-33320.patch
 
