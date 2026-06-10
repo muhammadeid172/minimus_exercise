@@ -36,10 +36,10 @@ echo "=== Running version command inside container ==="
 docker run --rm dasel:latest-$ARCH version
 
 echo "=== Running normal YAML test inside container ==="
-cat ../tests/normal.yaml | docker run --rm -i dasel:latest-$ARCH query --in yaml
+cat ../tests/normal.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
 
 echo "=== Running malicious YAML test inside container ==="
-cat ../tests/malicious.yaml | docker run --rm -i dasel:latest-$ARCH query --in yaml
+cat ../tests/malicious.yaml | docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml
 
 cd ..
 echo "All tests completed successfully."
