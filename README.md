@@ -27,6 +27,7 @@ root/
     │   └── dasel.yaml              # apko image configuration
     └── tests/
         ├── normal.yaml             # Safe YAML test case
+        ├── normal-expected.yaml    # Expected output for normal YAML test
         ├── malicious.yaml          # Recursive YAML aliases (malicious) test case
         ├── test.sh                 # Test script for patched build
         └── test-vulnerable.sh      # Test script for unpatched build
@@ -44,59 +45,166 @@ The test scripts automatically detect the host architecture.
 
 ## Building and Testing
 
-### Patched Build
+### Patched Packet - Building and Tesing
 
-1. Open a terminal in the `solution/` directory.
-2. Make the test script executable:
+#### 1. Open a terminal in the `solution/` directory.
+
+#### 2. Detect architecture
+
+```bash
+HOSTARCH=$(uname -m)
+
+case "$HOSTARCH" in
+x86_64) ARCH=amd64 ;;
+aarch64 | arm64) ARCH=arm64 ;;
+armv7*) ARCH=arm ;;
+i386 | i686) ARCH=386 ;;
+*)
+  echo "Unsupported architecture: $HOSTARCH"
+  exit 1
+  ;;
+esac
+```
+
+#### 3. Prepare build directory
+
+```bash
+rm -rf ./build
+mkdir -p build
+cd ./build
+```
+
+#### 4. Generate signing key
+
+```bash
+melange keygen
+```
+
+#### 5. Build the patched Melange package
+
+```bash
+melange build --arch $ARCH --signing-key melange.rsa ../melange/dasel.yaml
+```
+
+#### 6. Test the Melange package
+
+```bash
+melange test --arch $ARCH ../melange/dasel.yaml
+```
+
+#### 7. Build the apko image
+
+```bash
+apko build --arch $ARCH ../apko/dasel.yaml dasel ./dasel-image-$ARCH.tar
+```
+
+#### 8. Load the Docker image
+
+```bash
+docker load -i ./dasel-image-$ARCH.tar
+```
+
+#### 9. Runtime tests
+
+Version check:
+
+```bash
+docker run --rm dasel:latest-$ARCH version
+```
+
+Normal YAML test:
+
+```bash
+docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml
+```
+
+Expected patched behavior:
+
+```text
+The successfully parsed content.
+```
+
+Malicious YAML test:
+
+```bash
+docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/malicious.yaml
+```
+
+Expected patched behavior:
+
+```text
+Possitive failure: `yaml expansion depth exceeded` or `yaml expansion budget exceeded` error.
+```
+
+### Unpatched Packet - Building and Tesing
+
+#### 1-4. Run commands 1 to 4 from the last section
+
+#### 5. Build the patched Melange package
+
+```bash
+melange build --arch $ARCH --signing-key melange.rsa ../melange/dasel-vulnerable.yaml
+```
+
+#### 6. Test the Melange package
+
+```bash
+melange test --arch $ARCH ../melange/dasel-vulnerable.yaml
+```
+
+#### 7-9. Run commands 7 to 9 from the last section
+
+Expected unpatched behavior:
+
+```text
+For the normal yaml sample: the successfully parsed content, same as before.
+For the malocious yaml sample: security failure, stack overflow or similar.
+```
+
+### Automated Test Scripts
+
+#### 1. Open a terminal in the `solution/` directory.
+
+#### 2. Run the patched build and tests:
 
 ```bash
 chmod +x tests/test.sh
-```
-
-3. Run the script:
-
-```bash
 ./tests/test.sh
 ```
 
-Script description:
-
-- Detects host architecture automatically.
-- Cleans old build files.
-- Builds the Dasel package with Melange (including the CVE patch).
-- Builds the Docker image with apko.
-- Loads the Docker image locally.
-- Runs tests inside the container:
-  - Dasel version command is verified.
-  - Normal YAML file parses correctly.
-  - Malicious YAML file is safely rejected (`yaml expansion depth exceeded`).
-
-### Unpatched Build
-
-1. Open a terminal in the `solution/` directory.
-2. Make the unpatched test executable:
+#### 3. Run the unpatched build and tests (for verification only):
 
 ```bash
 chmod +x tests/test-vulnerable.sh
-```
-
-3. Run the script:
-
-```bash
 ./tests/test-vulnerable.sh
 ```
 
-Script description:
+Scripts description:
 
-- This script performs the same steps as the previous script, except that it uses `dasel-vulnerable.yaml`, which does not apply the CVE-2026-33320 patch.
-- Run the same tests inside the container:
-  - Dasel version command is verified.
-  - Normal YAML file parses correctly.
-  - Malicious YAML file causes stack overflow runtime error, demonstrating vulnerability.
+- Detects host architecture automatically.
+- Cleans old build files.
+- Builds the Dasel package with Melange
+  - `./tests/test.sh`: using `./melange/dasel.yaml` (patch applied).
+  - `./tests/test-vulnerable.sh`: using `./melange/dasel-vulneravle.yaml` (patch not applied).
+- Runs Melange package tests.
+- Builds the Docker image with apko.
+- Loads the Docker image locally.
+- Runs runtime tests inside the container:
+  - `./tests/test.sh` & `./tests/test-vulnerable.sh`:
+    - Verify dasel version is `3.1.1`.
+    - Print normal YAML file parsing.
+    - Compare actual output with expected output.
+  - `./tests/test.sh`:
+    - Print malicious YAML file prasing error.
+    - Verify malicious YAML file is safely rejected and error contains `yaml expansion depth exceeded` or `yaml expansion budget exceeded` error.
+  - `./tests/test-vulnerable.sh`:
+    - Print malicious YAML file prasing error.
+    - Verify malicious YAML file triggers the vulnerability error.
 
+> The unpatched melange yaml is included for comparison and demonstration purposes only, and is not intended for production use.
 > This allows us to **visualize the difference** between the patched and unpatched versions.
 
-## Runtime Tests
+## Runtime Test Samples
 
 ### Normal YAML Test
 
@@ -106,7 +214,7 @@ Verifies that Dasel can correctly parse and output valid YAML content.
 
 Uses recursive YAML aliases to simulate malicious input. Expected behavior:
 
-- **Patched:** `yaml expansion depth exceeded`  
+- **Patched:** safe rejection with `yaml expansion depth exceeded` or `yaml expansion budget exceeded` error.
 - **Unpatched:** may crash or hang due to unbounded alias expansion.
 
 ## Notes
