@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+SHOW_OUTPUT=false
+if [ "$1" = "--show-output" ]; then
+  SHOW_OUTPUT=true
+fi
+
 echo "=== Detecting host architecture ==="
 HOSTARCH=$(uname -m)
 
@@ -37,6 +42,9 @@ docker load -i ./dasel-image-$ARCH.tar
 
 echo "=== Running version command inside container ==="
 VERSION=$(docker run --rm dasel:latest-$ARCH version)
+if [ "$SHOW_OUTPUT" = true ]; then
+  echo "Version: $VERSION"
+fi
 if [[ "$VERSION" == *"v3.3.1"* ]]; then
   echo "PASS: Package is based on dasel version 3.3.1"
 else
@@ -46,8 +54,10 @@ fi
 
 echo "=== Running normal YAML test inside container ==="
 NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
-echo "Normal yaml parsing result:"
-echo "$NOR_RESULT"
+if [ "$SHOW_OUTPUT" = true ]; then
+  echo "Normal yaml parsing result:"
+  echo "$NOR_RESULT"
+fi
 
 if diff -u ../tests/normal-expected.yaml <(echo "$NOR_RESULT"); then
   echo "PASS: Normal YAML parsed as expected."
@@ -62,8 +72,10 @@ MAL_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in ya
 STATUS=$?
 set -e
 
-echo "Malicious yaml parsing result:"
-echo "$MAL_RESULT"
+if [ "$SHOW_OUTPUT" = true ]; then
+  echo "Malicious yaml parsing result:"
+  echo "$MAL_RESULT"
+fi
 
 if [ "$STATUS" -eq 0 ]; then
   echo "FAIL: Malicious YAML unexpectedly accepted. Expected vulnerable recursive expansion failure."
