@@ -47,4 +47,69 @@ test:
         - dasel
   pipeline:
     - runs: |
-        /usr/bin/dasel version
+        VERSION=$(/usr/bin/dasel version)
+        if [[ "$VERSION" == *"v3.3.1"* ]]; then
+            echo "PASS: Package is based on dasel version 3.3.1"
+        else
+            echo "FAIL: Package is not based on dasel version 3.3.1"
+            exit 1
+        fi
+
+
+        NORMAL_INPUT="users:
+            - &mohammad
+              name: Mohammad
+              following: []
+
+            - &sally
+              name: Sally
+              following:
+                - *mohammad"
+        
+        NORMAL_EXPECTED="users:
+            - name: Mohammad
+              following: []
+            - name: Sally
+              following:
+                - name: Mohammad
+                  following: []"
+        
+        NOR_RESULT=$(echo "$NORMAL_INPUT" | /usr/bin/dasel query --in yaml)
+        echo "Normal yaml parsing result:"
+        echo "$NOR_RESULT"
+
+        if diff -u <(echo "$NOR_RESULT") <(echo "$NORMAL_EXPECTED"); then
+            echo "PASS: Normal yaml sample passed."
+        else
+            echo "FAIL: Normal yaml sample failed."
+            exit 1
+        fi
+
+
+        MALICIOUS_INPUT="users:
+            - &mohammad
+              name: Mohammad
+              following:
+                - *mohammad"
+        
+        set +e
+        MAL_RESULT=$(echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml 2>&1)
+        STATUS=$?
+        set -e
+
+        echo "Malicious yaml parsing result: (should contain expansion exceeded error)"
+        echo "$MAL_RESULT"
+
+        if [ "$STATUS" -eq 0 ]; then
+          echo "FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
+          exit 1
+        fi
+
+        if [[ "$MAL_RESULT" == *"yaml expansion depth exceeded"* || "$MAL_RESULT" == *"yaml expansion budget exceeded"* ]]; then
+          echo "PASS: Malicious YAML triggered protected rejection as expected."
+        else 
+          echo "FAIL: Malicious YAML rejected, but for unexpected reason."
+          echo "Error should contain \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\`"
+          exit 1
+        fi
+        echo "All tests completed successfully."
