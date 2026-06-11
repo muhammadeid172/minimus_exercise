@@ -82,9 +82,6 @@ test:
                   following: []"
         
         NOR_RESULT=$(echo "$NORMAL_INPUT" | /usr/bin/dasel query --in yaml)
-        echo "Normal yaml parsing result:"
-        echo "$NOR_RESULT"
-
         if diff -u <(echo "$NOR_RESULT") <(echo "$NORMAL_EXPECTED"); then
             echo "PASS: Normal yaml sample passed."
         else
@@ -103,9 +100,6 @@ test:
         MAL_RESULT=$(echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml 2>&1)
         STATUS=$?
         set -e
-
-        echo "Malicious yaml parsing result: (should contain expansion exceeded error)"
-        echo "$MAL_RESULT"
 
         if [ "$STATUS" -eq 0 ]; then
           echo "FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."

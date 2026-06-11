@@ -74,9 +74,6 @@ test:
                   following: []"
         
         NOR_RESULT=$(echo "$NORMAL_INPUT" | /usr/bin/dasel query --in yaml)
-        echo "Normal yaml parsing result:"
-        echo "$NOR_RESULT"
-
         if diff -u <(echo "$NOR_RESULT") <(echo "$NORMAL_EXPECTED"); then
           echo "PASS: Normal YAML parsed as expected."
         else
@@ -92,12 +89,9 @@ test:
                 - *mohammad"
         
         set +e
-        MAL_RESULT=$(echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml 2>&1)
+        echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml 2>&1
         STATUS=$?
         set -e
-
-        echo "Malicious yaml parsing result:"
-        echo "$MAL_RESULT"
 
         if [ "$STATUS" -eq 0 ]; then
           echo "FAIL: Malicious YAML unexpectedly accepted. Expected vulnerable recursive expansion failure."
