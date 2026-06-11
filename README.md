@@ -173,11 +173,23 @@ chmod +x tests/test.sh
 ./tests/test.sh
 ```
 
+(Optional) Print runtime command outputs during the patched tests:
+
+```bash
+./tests/test.sh --show-output
+```
+
 #### 3. Run the unpatched build and tests (for verification only):
 
 ```bash
 chmod +x tests/test-vulnerable.sh
 ./tests/test-vulnerable.sh
+```
+
+(Optional) Print runtime command outputs during the unpatched tests:
+
+```bash
+./tests/test-vulnerable.sh --show-output
 ```
 
 Scripts description:

@@ -26,10 +26,22 @@ chmod +x tests/test-vulnerable.sh
 ./tests/test.sh
 ```
 
+(Optional) Print runtime command outputs during the patched tests:
+
+```bash
+./tests/test.sh --show-output
+```
+
 4. Run the unpatched build and tests:
 
 ```bash
 ./tests/test-vulnerable.sh
+```
+
+(Optional) Print runtime command outputs during the unpatched tests:
+
+```bash
+./tests/test-vulnerable.sh --show-output
 ```
 
 The tests demonstrate runtime behavior using both normal and malicious YAML inputs, using both patched and unpatched packages.
