@@ -36,7 +36,13 @@ echo "=== Loading Docker image ==="
 docker load -i ./dasel-image-$ARCH.tar
 
 echo "=== Running version command inside container ==="
-docker run --rm dasel:latest-$ARCH version
+VERSION=$(docker run --rm dasel:latest-$ARCH version)
+if [[ "$VERSION" == *"v3.3.1"* ]]; then
+  echo "PASS: Package is based on dasel version 3.3.1"
+else
+  echo "FAIL: Package is not based on dasel version 3.3.1"
+  exit 1
+fi
 
 echo "=== Running normal YAML test inside container ==="
 NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
@@ -70,4 +76,4 @@ cd ..
 echo "All tests completed successfully."
 # We could check if the output contains "stack overflow" or "goroutine stack exceeds",
 # but we decided not to depend on runtime errors that are not part of our source code.
-# The error is printed to the std for visual/manual check.
+# The error is printed to the std for visual/manual check too.
