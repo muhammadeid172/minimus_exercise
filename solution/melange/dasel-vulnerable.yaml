@@ -89,7 +89,7 @@ test:
                 - *mohammad"
         
         set +e
-        echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml 2>&1
+        echo "$MALICIOUS_INPUT" | /usr/bin/dasel query --in yaml > /dev/null 2>&1
         STATUS=$?
         set -e
 
