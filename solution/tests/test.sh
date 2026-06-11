@@ -36,7 +36,13 @@ echo "=== Loading Docker image ==="
 docker load -i ./dasel-image-$ARCH.tar
 
 echo "=== Running version command inside container ==="
-docker run --rm dasel:latest-$ARCH version
+VERSION=$(docker run --rm dasel:latest-$ARCH version)
+if [[ "$VERSION" == *"v3.3.1"* ]]; then
+  echo "PASS: Package is based on dasel version 3.3.1"
+else
+  echo "FAIL: Package is not based on dasel version 3.3.1"
+  exit 1
+fi
 
 echo "=== Running normal YAML test inside container ==="
 NOR_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in yaml <../tests/normal.yaml 2>&1)
@@ -56,14 +62,11 @@ MAL_RESULT=$(docker run --rm -i -e USER=nonroot dasel:latest-$ARCH query --in ya
 STATUS=$?
 set -e
 
-echo "Malicious yaml parsing result: (expected positive error)"
+echo "Malicious yaml parsing result: (should contain expansion exceeded error)"
 echo "$MAL_RESULT"
 
-ERROR_MSG="FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
 if [ "$STATUS" -eq 0 ]; then
-  echo "$ERROR_MSG"
-  echo "Actual output:"
-  echo "$MAL_RESULT"
+  echo "FAIL: Malicious YAML unexpectedly accepted. Expected \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\` error."
   exit 1
 fi
 
@@ -72,19 +75,11 @@ EXPECTED_ERRORS=(
   "yaml expansion budget exceeded"
 )
 
-ERROR_FOUND=false
-for ERR in "${EXPECTED_ERRORS[@]}"; do
-  if [[ "$MAL_RESULT" == *"$ERR"* ]]; then
-    ERROR_FOUND=true
-    echo "PASS: Malicious YAML triggered protected rejection as expected."
-    break
-  fi
-done
-
-if [ "$ERROR_FOUND" = false ]; then
-  echo "$ERROR_MSG"
-  echo "Actual output:"
-  echo "$MAL_RESULT"
+if [[ "$MAL_RESULT" == *"yaml expansion depth exceeded"* || "$MAL_RESULT" == *"yaml expansion budget exceeded"* ]]; then
+  echo "PASS: Malicious YAML triggered protected rejection as expected."
+else
+  echo "FAIL: Malicious YAML rejected, but for unexpected reason."
+  echo "Error should contain \`yaml expansion depth exceeded\` or \`yaml expansion budget exceeded\`"
   exit 1
 fi
 
